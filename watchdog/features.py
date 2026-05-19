@@ -58,6 +58,6 @@ class FeatureBuilder:
             pickle.dump(self, f)
 
     @classmethod
-    def load(cls, path: Path) -> "FeatureBuilder":
+    def load(cls, path: Path) -> FeatureBuilder:
         with Path(path).open("rb") as f:
             return pickle.load(f)

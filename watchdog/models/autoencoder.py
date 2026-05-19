@@ -128,7 +128,7 @@ class AutoencoderModel:
         )
 
     @classmethod
-    def load(cls, path: Path) -> "AutoencoderModel":
+    def load(cls, path: Path) -> AutoencoderModel:
         checkpoint = torch.load(path, weights_only=False, map_location="cpu")
         instance = cls(
             hidden_dim=checkpoint["hidden_dim"],

@@ -48,6 +48,6 @@ class IForestModel:
             pickle.dump(self, f)
 
     @classmethod
-    def load(cls, path: Path) -> "IForestModel":
+    def load(cls, path: Path) -> IForestModel:
         with Path(path).open("rb") as f:
             return pickle.load(f)
