@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.env
+mlruns/
+mlartifacts/
+mlruns.db
+request_log.db
+data/
+tests/
+evals/fixtures/
+docs/
+.git/
+.github/
