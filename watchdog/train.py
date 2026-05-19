@@ -84,19 +84,16 @@ def train_both(
     X_train_flat = fb.transform_flat(train_df)
     X_val_flat = fb.transform_flat(val_df)
 
-    iforest = IForestModel(**(iforest_params or {}))
-    autoencoder = AutoencoderModel(**(autoencoder_params or {}))
+    iforest_params = iforest_params or {}
+    autoencoder_params = autoencoder_params or {}
 
-    out: dict[str, dict[str, Any]] = {}
-    out["iforest"] = _train_one(
-        "iforest", iforest, X_train_flat, X_val_flat, fb, iforest_params or {}
-    )
-    out["autoencoder"] = _train_one(
-        "autoencoder",
-        autoencoder,
-        X_train_seq,
-        X_val_seq,
-        fb,
-        autoencoder_params or {},
-    )
-    return out
+    return {
+        "iforest": _train_one(
+            "iforest", IForestModel(**iforest_params),
+            X_train_flat, X_val_flat, fb, iforest_params,
+        ),
+        "autoencoder": _train_one(
+            "autoencoder", AutoencoderModel(**autoencoder_params),
+            X_train_seq, X_val_seq, fb, autoencoder_params,
+        ),
+    }
