@@ -10,6 +10,6 @@ mlruns/
 mlartifacts/
 request_log.db
 data/
-models/
+/models/
 *.parquet
 !evals/fixtures/**/*.parquet
