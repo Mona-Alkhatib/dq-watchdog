@@ -15,6 +15,8 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader, TensorDataset
 
+from watchdog.models.base import calibrate
+
 
 class _AE(nn.Module):
     def __init__(self, n_features: int, hidden_dim: int) -> None:
@@ -104,12 +106,7 @@ class AutoencoderModel:
         if self._net is None:
             raise RuntimeError("Model not fit")
         err = self._reconstruction_errors(X)
-        if self._calibration_max == self._calibration_min:
-            return np.zeros_like(err)
-        scaled = (err - self._calibration_min) / (
-            self._calibration_max - self._calibration_min
-        )
-        return np.clip(scaled, 0.0, 1.0)
+        return calibrate(err, self._calibration_min, self._calibration_max)
 
     def save(self, path: Path) -> None:
         if self._net is None:

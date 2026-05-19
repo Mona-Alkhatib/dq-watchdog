@@ -24,3 +24,15 @@ class AnomalyModel(Protocol):
 
     @classmethod
     def load(cls, path: Path) -> AnomalyModel: ...
+
+
+def calibrate(raw: np.ndarray, cal_min: float, cal_max: float) -> np.ndarray:
+    """Min-max scale raw anomaly scores into [0, 1], clipped.
+
+    If the calibration range is degenerate (min == max), returns zeros.
+    Shared by IForestModel and AutoencoderModel — both calibrate raw
+    scores against a validation split using this identical mapping.
+    """
+    if cal_max == cal_min:
+        return np.zeros_like(raw)
+    return np.clip((raw - cal_min) / (cal_max - cal_min), 0.0, 1.0)

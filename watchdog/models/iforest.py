@@ -12,6 +12,8 @@ from pathlib import Path
 import numpy as np
 from sklearn.ensemble import IsolationForest
 
+from watchdog.models.base import calibrate
+
 
 class IForestModel:
     name = "iforest"
@@ -38,12 +40,7 @@ class IForestModel:
         if self._model is None:
             raise RuntimeError("Model not fit")
         raw = -self._model.decision_function(X)
-        if self._calibration_max == self._calibration_min:
-            return np.zeros_like(raw)
-        scaled = (raw - self._calibration_min) / (
-            self._calibration_max - self._calibration_min
-        )
-        return np.clip(scaled, 0.0, 1.0)
+        return calibrate(raw, self._calibration_min, self._calibration_max)
 
     def save(self, path: Path) -> None:
         Path(path).parent.mkdir(parents=True, exist_ok=True)
