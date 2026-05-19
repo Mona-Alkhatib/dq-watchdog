@@ -31,8 +31,15 @@ def _baseline_series(rng: np.random.Generator, n: int, params: dict) -> np.ndarr
     return params["mean"] + seasonal + noise
 
 
-def _clip(values: np.ndarray, lo: float, hi: float | None) -> np.ndarray:
-    return np.clip(values, lo, hi)
+def _postprocess(metric: str, series: np.ndarray, n: int) -> np.ndarray:
+    """Apply per-metric clipping and dtype rules to a raw baseline series."""
+    if metric in {"null_rate", "duplicate_rate"}:
+        return np.clip(series, 0.0, 1.0)
+    if metric in {"row_count", "freshness_lag_seconds"}:
+        return np.clip(series, 0, None).astype(int)
+    if metric == "schema_hash_changes":
+        return np.zeros(n, dtype=int)
+    return series
 
 
 def _apply_anomaly(
@@ -81,32 +88,25 @@ def generate_timeseries(
     df = pd.DataFrame({"timestamp": timestamps})
 
     for metric, params in BASELINES.items():
-        series = _baseline_series(rng, n, params)
-        if metric in {"null_rate", "duplicate_rate"}:
-            series = _clip(series, 0.0, 1.0)
-        elif metric == "row_count":
-            series = _clip(series, 0, None).astype(int)
-        elif metric == "freshness_lag_seconds":
-            series = _clip(series, 0, None).astype(int)
-        elif metric == "schema_hash_changes":
-            series = np.zeros(n, dtype=int)
-        df[metric] = series
+        df[metric] = _postprocess(metric, _baseline_series(rng, n, params), n)
 
     labels: list[dict[str, Any]] = []
     for a in anomalies or []:
+        duration = int(a.get("duration_hours", 1))
+        timestamp = a["timestamp"]
         _apply_anomaly(
             df,
             rng,
-            timestamp=a["timestamp"],
+            timestamp=timestamp,
             metric=a["metric"],
             anomaly_type=a["type"],
-            duration_hours=int(a.get("duration_hours", 1)),
+            duration_hours=duration,
         )
         labels.append({
-            "timestamp": a["timestamp"].isoformat() if isinstance(a["timestamp"], datetime) else a["timestamp"],
+            "timestamp": timestamp.isoformat() if isinstance(timestamp, datetime) else timestamp,
             "metric": a["metric"],
             "type": a["type"],
-            "duration_hours": int(a.get("duration_hours", 1)),
+            "duration_hours": duration,
         })
 
     return df, labels
