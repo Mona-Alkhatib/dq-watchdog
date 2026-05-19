@@ -44,10 +44,9 @@ class FeatureBuilder:
         n = len(scaled)
         if n < self.window_size:
             raise ValueError(f"need at least {self.window_size} rows, got {n}")
-        windows = np.stack(
+        return np.stack(
             [scaled[i : i + self.window_size] for i in range(n - self.window_size + 1)]
         )
-        return windows
 
     def transform_flat(self, df: pd.DataFrame) -> np.ndarray:
         seq = self.transform_sequence(df)

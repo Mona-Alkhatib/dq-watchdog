@@ -52,17 +52,13 @@ class ServiceState:
 
     def recent_scores(self) -> dict[str, np.ndarray]:
         if self.request_log_path is None:
-            if not self.in_memory_log:
-                return {}
-            return {
-                "iforest": np.array([r["iforest_score"] for r in self.in_memory_log]),
-                "autoencoder": np.array([r["autoencoder_score"] for r in self.in_memory_log]),
-            }
-        con = sqlite3.connect(str(self.request_log_path))
-        try:
-            rows = con.execute("SELECT iforest, autoencoder FROM scores").fetchall()
-        finally:
-            con.close()
+            rows = [(r["iforest_score"], r["autoencoder_score"]) for r in self.in_memory_log]
+        else:
+            con = sqlite3.connect(str(self.request_log_path))
+            try:
+                rows = con.execute("SELECT iforest, autoencoder FROM scores").fetchall()
+            finally:
+                con.close()
         if not rows:
             return {}
         arr = np.array(rows)
